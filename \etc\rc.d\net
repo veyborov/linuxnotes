@@ -1,0 +1,201 @@
+#!/bin/sh
+#
+# /etc/rc.d/net: start/stop network
+#
+
+case $1 in
+start)
+        # loopback
+        /sbin/ip addr add 127.0.0.1/8 dev lo broadcast + scope host
+        /sbin/ip link set lo up
+
+        # Linc to ISP
+        /sbin/ip link set eth0 up
+
+#       /sbin/vconfig add eth0 202
+#       /sbin/ip addr add x.x.237.2/30 dev eth0.202 broadcast +
+#       /sbin/ip addr add x.x.28.234/29 dev eth0.202 broadcast +
+#        /sbin/ip link set eth0.202 up
+
+        /sbin/vconfig add eth0 232
+        /sbin/ip addr add x.x.28.235/29 dev eth0.232 broadcast +
+        /sbin/ip addr add x.x.28.234/29 dev eth0.232:1 broadcast +
+        /sbin/ip link set eth0.232 up
+        # Link fo NAT
+
+#       /sbin/vconfig add eth0 14
+#       /sbin/ip addr add x.x.237.22/29 dev eth0.14 broadcast +
+#       /sbin/ip addr add x.x.237.18/29 dev eth0.14:1 broadcast +
+#       /sbin/ip link set eth0.14 up#   # default route
+        #/sbin/ip route add default via x.x.237.1
+        /sbin/ip route add default via x.x.28.233
+    #    route add -net 192.168.1.0 netmask 255.255.255.0 gw 192.168.100.254
+
+        # for net xxxx x.x.237.128/26
+#        /sbin/vconfig add eth0 194
+#        /sbin/ip addr add x.x.237.137/26 dev eth0.194 broadcast +
+#         /sbin/ip link set eth0.194 up
+
+        # Local vlan
+        /sbin/ip link set eth1 up
+             #### xxxxx Localnet
+                 /sbin/vconfig add eth1 100
+                 /sbin/ip addr add 192.168.100.1/24 dev eth1.100 broadcast +
+                 /sbin/ip link set eth1.100 up
+                /sbin/vconfig add eth1 101
+                /sbin/ip addr add 192.168.101.1/24 dev eth1.101 broadcast +
+                /sbin/ip link set eth1.101 up
+                /sbin/vconfig add eth1 102
+                /sbin/ip addr add 192.168.102.1/24 dev eth1.102 broadcast +
+                /sbin/ip link set eth1.102 up
+
+                #### labname
+#                       /sbin/vconfig add eth1 104
+#                       /sbin/ip addr add 192.168.104.1/24 dev eth1.104 broadcast +
+#                       /sbin/ip link set eth1.104 up
+
+                        /sbin/vconfig add eth1 145
+                        /sbin/ip addr add 192.168.45.1/24 dev eth1.145 broadcast +
+                        /sbin/ip link set eth1.145 up
+
+                        /sbin/vconfig add eth1 200
+                        /sbin/ip addr add 10.0.0.1/24 dev eth1.200 broadcast +
+                        /sbin/ip link set eth1.200 up
+
+                        /sbin/vconfig add eth 1 117
+                        /sbin/ip addr add 192.168.117.1/24 dev eth1.117 broadcast +
+                        /sbin/ip link set eth1.117 up
+
+                ######
+
+#               /sbin/vconfig add eth1 180
+#                /sbin/ip addr add 192.168.0.136/24 dev eth1.180 broadcast +
+#                /sbin/ip link set eth1.180 up
+#               /sbin/vconfig add eth1 23
+#               /sbin/ip addr add 192.168.23.1/24 dev eth1.23 broadcast +
+#               /sbin/ip link set eth1.23 up
+
+                 echo "1" > /proc/sys/net/ipv4/ip_forward
+
+ ### ROUTE
+
+#         echo 100 net0 > /etc/iproute2/rt_tables
+#        echo 101 net1 >> /etc/iproute2/rt_tables
+#         echo 104 net4 >> /etc/iproute2/rt_tables
+#         echo 232 net10 >> /etc/iproute2/rt_tables
+
+#        ip rule add from x.x.28.232/29 table net0
+
+#        ip rule add from x.x.237.0/30 table net0
+
+#       ip rule add from x.x.237.16/29 table net1
+#        ip rule add from 192.168.100.0/24 table net1
+#       ip rule add from 192.168.101.0/24 table net1
+#       ip rule add from 192.168.102.0/24 table net1
+#        ip rule add from 192.168.45.0/24 table net1
+#        ip rule add from 192.168.0.0/24 table net1
+#       ip rule add from 192.168.23.0/24 table net1
+
+#        ip rule add from 192.168.104.0/24 table net4
+
+#       ip route add 195.191.237.0/30 dev eth0.202 table net0
+#        ip route add 192.168.100.0/24 dev eth1.100 table net0
+#        ip route add 192.168.101.0/24 dev eth1.101 table net0
+#        ip route add 192.168.102.0/24 dev eth1.102 table net0
+#        ip route add 192.168.104.0/24 dev eth1.104 table net0
+#        ip route add x.x.28.232/29 dev eth0.232 table net0
+#        ip route add 192.168.23.0/24 dev eth1.23 table net0
+
+
+
+#       ip route add 192.168.104.0/24 dev eth1.104 table net1
+#       ip route add 192.168.1.0/24  via 192.168.100.254 table net1
+#       ip route add x.x.237.16/29 dev eth0.14 table net1
+#       ip route add 192.168.100.0/24 dev eth1.100 table net1
+#       ip route add 192.168.1.0/24 dev eth1.100 table net1
+#        ip route add 192.168.101.0/24 dev eth1.101 table net1
+#        ip route add 192.168.102.0/24 dev eth1.102 table net1
+#        ip route add x.x.237.128/26 dev eth0.194 table net1
+#       ip route add x.x.237.20/32 via 194.125.237.129 table net1
+#        ip route add 192.168.45.0/24 dev eth1.145 table net1
+#       ip route add 192.168.0.0/24 dev eth1.145 table net1
+#        ip route add 192.168.23.0/24 dev eth1.23 table net1
+
+#        ip route add x.x.237.16/29 dev eth0.14 table net4
+#        ip route add 192.168.104.0/24 dev eth1.104 table net4
+#        ip route add x.x.237.0/30 dev eth0.202 table net4
+#        ip route add 192.168.100.0/24 dev eth1.100 table net4
+
+#        ip route add x.x.28.232/29 dev eth0.232 table net10
+#       ip route add default via x.x.28.233 dev eth0.232 table net0
+
+#       ip route add default via x.x.237.1 dev eth0.202 table net0
+#       ip route add default via x.x.237.17 dev eth0.14 table net1
+#       ip route add default via x.x.237.17 dev eth0.14 table net4
+#       ip route flush cache
+
+
+
+
+        ;;
+stop)
+#       ip rule del from x.x.28.232/29 table net10
+#        ip rule del from x.x.237.0/30 table net0
+#       ip rule del from x.x.237.16/29 table net1
+#        ip rule del from 192.168.100.0/24 table net1
+#        ip rule del from 192.168.101.0/24 table net1
+#       ip rule del from 192.168.102.0/24 table net1
+#        ip rule del from 192.168.104.0/24 table net4
+
+#       ip route del x.x.28.232/29 dev eth0.232 table net10
+#       ip route del x.x.237.0/30 dev eth0.202 table net0
+#       ip route del 192.168.100.0/24 dev eth1.100 table net0
+#        ip route del 192.168.101.0/24 dev eth1.101 table net0
+#       ip route del 192.168.102.0/24 dev eth1.102 table net0
+#        ip route del 192.168.104.0/24 dev eth1.104 table net0
+#       ip route del 192.168.23.0/24 dev eth1.23 table net0
+#
+#        ip route del 192.168.1.0/24  via 192.168.100.254 table net1
+#       ip route del x.x.237.16/29 dev eth0.14 table net1
+#       ip route del 192.168.100.0/24 dev eth1.100 table net1
+#        ip route del 192.168.1.0/24 dev eth1.100 table net1
+#        ip route del 192.168.101.0/24 dev eth1.101 table net1
+#       ip route del 192.168.102.0/24 dev eth1.102 table net1
+#       ip route del 192.168.104.0/24 dev eth1.104 table net1
+#       ip route del x.x.237.128/26 dev eth0.194 table net1
+#       ip route del x.x.237.20/32 via 194.125.237.129 table net1
+
+#        ip route add 1x.x.237.16/29 dev eth0.14 table net4
+#       ip route add 192.168.104.0/24 dev eth1.104 table net4
+#       ip route add x.x.237.0/30 dev eth0.202 table net4
+#       ip route del 192.168.100.0/24 dev eth1.100 table net4
+
+
+#       ip route del default via x.x.28.233 dev eth0.232 table net10
+
+#       ip route del default via x.x.237.1 dev eth0.202 table net0
+#       ip route del default via x.x.237.17 dev eth0.14 table net1
+#       ip route add default via x.x.237.17 dev eth0.14 table net4
+
+        /sbin/ip route del default
+        /sbin/ip link set eth0 down
+        /sbin/ip addr del x.x.28.234/29 dev eth0.232:1
+        /sbin/ip addr del x.x.28.235/29 dev eth0.232
+#       /sbin/ip addr del x.x.237.18/29 dev eth0.14:1
+        /sbin/ip link set lo down
+        /sbin/ip addr del 127.0.0.1/8 dev lo
+        /sbin/ip addr del  192.168.100.1/24 dev eth1.100
+        /sbin/vconfig rem eth1.100
+        /sbin/vconfig rem eth0.20
+        /sbin/vconfig rem eth0.14
+        ;;
+restart)
+        $0 stop
+        $0 start
+        ;;
+*)
+        echo "usage: $0 [start|stop|restart]"
+        ;;
+esac
+
+# End of file
