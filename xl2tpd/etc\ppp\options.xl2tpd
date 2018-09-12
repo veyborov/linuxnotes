@@ -1,0 +1,14 @@
+ipcp-accept-local
+ipcp-accept-remote
+noccp
+auth
+proxyarp
+nodeflate
+nobsdcomp
+persist
+nopcomp
+noaccomp
+mtu 1460
+mru 1460
+nodefaultroute
+debug
