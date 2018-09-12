@@ -1,0 +1,139 @@
+#!/bin/bash
+
+iptables="/usr/sbin/iptables"
+
+NAT="192.168.100.0/24 192.168.101.0/24 192.168.102.0/24 192.168.45.0/24 192.168.117.0/24"
+SH1="192.168.101.70 192.168.101.74 192.168.100.19 192.168.100.253"
+NIL21="192.168.104.0/24"
+case "$1" in
+   'start')
+
+   $iptables -A FORWARD -i eth1.180 -s 192.168.0.0/24 -o eth1.102 -d 192.168.102.0/24 -j ACCEPT
+   $iptables -A FORWARD -i eth1.102 -s 192.168.102.0/24 -o eth1.180 -d 192.168.0.0/24 -j ACCEPT
+   $iptables -A FORWARD -i eth1.200 -s 10.0.0.0/24 -o eth1.100 -d 192.168.100.0/24 -j ACCEPT
+   $iptables -A FORWARD -i eth1.100 -s 192.168.100.0/24 -o eth1.200 -d 10.0.0.0/24 -j ACCEPT
+   $iptables -A FORWARD -i eth1.180 -j DROP
+   $iptables -A FORWARD -i eth1.102 -o eth1.180 -j DROP
+
+   $iptables -A FORWARD -i eth1.100 -o eth1.101 -j DROP
+#   $iptables -A FORWARD -i eth1.100 -o eth1.104 -j DROP
+
+   $iptables -A FORWARD -i eth1.101 -o eth1.100 -j DROP
+   $iptables -A FORWARD -i eth1.101 -o eth1.102 -j DROP
+   $iptables -A FORWARD -i eth1.101 -o eth1.104 -j DROP
+#  $iptables -A FORWARD -i eth1.101 -o eth1.23 -j DROP
+
+   $iptables -A FORWARD -i eth1.102 -o eth1.101 -j DROP
+   $iptables -A FORWARD -i eth1.102 -o eth1.104 -j DROP
+#   $iptables -A FORWARD -i eth1.102 -o eth1.23 -j DROP
+
+#     $iptables -A FORWARD -i eth1.104 -o eth1.100 -j DROP
+      $iptables -A FORWARD -i eth1.104 -o eth1.101 -j DROP
+      $iptables -A FORWARD -i eth1.104 -o eth1.102 -j DROP
+#      $iptables -A FORWARD -i eth1.104 -o eth1.23 -j DROP
+
+
+
+
+#    $iptables -A INPUT --src 192.168.100.19 -j DROP
+#    $iptables -A FORWARD --dst 192.168.100.19 -j DROP
+
+
+
+#----------------------------------------------------------
+# Shaping
+
+       for a in $SH1
+          do
+$iptables -t mangle -A FORWARD --src $a -o eth0.14 -j MARK --set-mark 0x1
+$iptables -t mangle -A FORWARD --dst $a -i eth0.14 -j MARK --set-mark 0x1
+          done
+
+
+
+          # CLASSES
+#         tc qdisc add dev eth1.100 root handle 1: htb
+#        tc class add dev eth1.100 parent 1: classid 1:1 htb rate 2mbit
+#        tc filter add dev eth1.100 protocol ip parent 1:0 prio 1 handle 1 fw flowid 1:1
+
+#        tc qdisc add dev eth1.101 root handle 1: htb
+#        tc class add dev eth1.101 parent 1: classid 1:1 htb rate 2mbit
+ #        tc filter add dev eth1.101 protocol ip parent 1:0 prio 1 handle 1 fw flowid 1:1
+
+#        tc qdisc add dev eth1.102 root handle 1: htb
+#         tc class add dev eth1.102 parent 1: classid 1:1 htb rate 2mbit
+#        tc filter add dev eth1.102 protocol ip parent 1:0 prio 1 handle 1 fw flowid 1:1
+
+#        tc qdisc add dev eth0.14 root handle 1: htb
+#        tc class add dev eth0.14 parent 1: classid 1:1 htb rate 2mbit
+#         tc filter add dev eth0.14 protocol ip parent 1:0 prio 1 handle 1 fw flowid 1:1
+
+
+#         tc class add dev eth1.100 parent ffff: classid 1:1 htb rate 100kbit ceil 100kbit
+#-----------------------------------------------------------
+
+# To NEW LOCAL NET INTERNET
+        for b in $NAT
+          do
+$iptables -t nat -A POSTROUTING --src $b -o eth0.232  -j SNAT --to-source your.ext1.ip.addr
+         done
+$iptables -t nat -A PREROUTING -p tcp -d your.ext1.ip.addr --dport 8080 -j DNAT --to-destination 192.168.100.235:8000
+$iptables -A FORWARD -i eth0.232 -o eth0.100 -d 192.168.100.235 -p tcp --dport 8000 -j ACCEPT
+$iptables -t nat -A PREROUTING -p tcp -d your.ext1.ip.addr --dport 9595 -j DNAT --to-destination 192.168.100.110:443
+$iptables -A FORWARD -i eth0.232 -o eth0.100 -d 192.168.100.110 -p tcp --dport 443 -j ACCEPT
+$iptables -t nat -A PREROUTING -p tcp -d your.ext1.ip.addr --dport 902 -j DNAT --to destination 192.168.100.110:902
+$iptables -A FORWARD -i eth0.232 -o eth0.100 -d 192.168.100.110 -p tcp --dport 902 -j ACCEPT
+$iptables -t nat -A PREROUTING -p tcp -d your.ext1.ip.addr --dport 903 -j DNAT --to destination 192.168.100.110:903
+$iptables -A FORWARD -i eth0.232 -o eth0.100 -d 192.168.100.110 -p tcp --dport 903 -j ACCEPT
+$iptables -t nat -A PREROUTING -p tcp -d your.ext1.ip.addr --dport 9696 -j DNAT --to destination 192.168.100.224:3389
+$iptables -A FORWARD -i eth0.232 -o eth0.100 -d 192.168.100.224 -p tcp --dport 3389 -j ACCEPT
+$iptables -t nat -A PREROUTING -p tcp -d your.ext1.ip.addr --dport 8081 -j DNAT --to destination 192.168.100.224:80
+$iptables -A FORWARD -i eth0.232 -o eth0.100 -d 192.168.100.224 -p tcp --dport 80 -j ACCEPT
+$iptables -t nat -A PREROUTING -p tcp -d your.ext1.ip.addr --dport 9000 -j DNAT --to destination 192.168.100.224:443
+$iptables -A FORWARD -i eth0.232 -o eth0.100 -d 192.168.100.224 -p tcp --dport 443 -j ACCEPT
+
+#$iptables -t nat -A PREROUTING -p udp -s your.ext.src.ip.addr -d your.ext.dest.ip.addr --dport 5060 -j DNAT --to-destination 192.168.100.100
+#$iptables -t nat -A PREROUTING -p udp -s your.ext.src.ip.addr1 -d your.ext.dest.ip.addr --dport 5060 -j DNAT --to-destination 192.168.100.100
+#$iptables -t nat -A PREROUTING -p udp -s your.ext.src.ip.addr -d your.ext.dest.ip.addr --dport 10000:10100 -j DNAT --to-destination 192.168.100.100
+#$iptables -t nat -A PREROUTING -p udp -s your.ext.src.ip.addr -d your.ext.dest.ip.addr --dport 10000:10100 -j DNAT --to-destination 192.168.100.100
+
+# To NEW LOCAL NET INTERNET
+        for b in $NIL21
+                          do
+        $iptables -t nat -A POSTROUTING --src $b -o eth0.14  -j SNAT --to-source your.ext.ip.addr
+        done
+
+
+# To NEW LOCAL NET MTUCI
+#        for b in $NAT
+#         do
+#$iptables -t nat -A POSTROUTING --src $b -o eth0.194  -j SNAT --to-source your.ext.dest.ip.addr
+#        done
+
+
+  ;;
+
+    'stop')
+
+         echo "Delete iproute"
+
+         $iptables -F
+         $iptables -F INPUT
+         $iptables -F OUTPUT
+         $iptables -F FORWARD
+         $iptables -t nat -F
+         $iptables -t mangle -F
+      ;;
+
+
+     'restart')
+                 $0 stop
+                 $0 start
+         ;;
+
+     *)
+
+         echo "Usage: $0 start|stop|restart ";;
+
+ esac
+
